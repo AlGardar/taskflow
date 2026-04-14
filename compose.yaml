@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: 'postgres:16-alpine'
+    environment:
+      - 'POSTGRES_DB=user'
+      - 'POSTGRES_PASSWORD=password'
+      - 'POSTGRES_USER=taskflow'
+    ports:
+      - '5433:5432'
+    volumes:
+      - taskflow_pg_data:/var/lib/postgresql/data
+
+volumes:
+  taskflow_pg_data:
