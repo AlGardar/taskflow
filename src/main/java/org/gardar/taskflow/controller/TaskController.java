@@ -1,9 +1,7 @@
 package org.gardar.taskflow.controller;
 
 import jakarta.validation.Valid;
-import org.gardar.taskflow.dto.TaskCreateRequest;
-import org.gardar.taskflow.dto.TaskResponse;
-import org.gardar.taskflow.dto.TaskUpdateRequest;
+import org.gardar.taskflow.dto.*;
 import org.gardar.taskflow.service.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +24,8 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public TaskResponse getTaskById(@PathVariable Long id) {
-        return taskService.getTaskById(id);
+    public TaskDetailResponse getTaskById(@PathVariable Long id) {
+        return taskService.getTaskWithComment(id);
     }
 
     @PostMapping
@@ -48,4 +46,10 @@ public class TaskController {
         taskService.deleteTask(id);
     }
 
+    @PostMapping("/{id}/comment")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommentResponse addComment(@PathVariable Long id,
+                                      @Valid @RequestBody CommentCreatedRequest request) {
+        return taskService.addCommentToTask(id, request);
+    }
 }

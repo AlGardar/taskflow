@@ -1,8 +1,7 @@
 package org.gardar.taskflow.service;
 
-import org.gardar.taskflow.dto.TaskCreateRequest;
-import org.gardar.taskflow.dto.TaskResponse;
-import org.gardar.taskflow.dto.TaskUpdateRequest;
+import org.gardar.taskflow.dto.*;
+import org.gardar.taskflow.model.Comment;
 import org.gardar.taskflow.model.Task;
 import org.gardar.taskflow.model.TaskStatus;
 import org.gardar.taskflow.repository.TaskRepository;
@@ -26,6 +25,13 @@ public class TaskService {
                 .stream()
                 .map(TaskResponse::fromEntity)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public TaskDetailResponse getTaskWithComment(Long id) {
+        Task detailTask = taskRepository.findByIdWithComments(id)
+                .orElseThrow(() -> new IllegalArgumentException("Task with id: " + id + " not found."));
+        return TaskDetailResponse.fromEntity(detailTask);
     }
 
     @Transactional(readOnly = true)
@@ -64,5 +70,20 @@ public class TaskService {
             throw new IllegalArgumentException("Task not found with id: " + id);
         }
         taskRepository.deleteById(id);
+    }
+
+    @Transactional
+    public CommentResponse addCommentToTask(Long taskId, CommentCreatedRequest request) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task with id: " + taskId + " not found."));
+
+        Comment comment = new Comment(
+                request.text(),
+                task
+        );
+
+        task.addComment(comment);
+
+        return CommentResponse.fromEntity(comment);
     }
 }
