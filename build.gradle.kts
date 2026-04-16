@@ -34,6 +34,11 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // Spring Security
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    // Поддержка JWT токенов "из коробки"
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 }
 
 tasks.withType<Test> {
