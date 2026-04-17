@@ -23,4 +23,9 @@ public class AuthController {
         String token = authService.authenticate(request.username(), request.password());
         return new TokenResponse(token);
     }
+
+    @PostMapping("/register")
+    public void register(@Valid @RequestBody LoginRequest request) {
+        authService.register(request);
+    }
 }
