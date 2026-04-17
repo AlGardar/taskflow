@@ -15,6 +15,15 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     List<Task> findAllByStatus(TaskStatus status);
 
+    List<Task> findAllByAuthorId(Long authorId);
+
     @Query("select t from Task t left join fetch t.comments where t.id = :id")
     Optional<Task> findByIdWithComments(@Param("id") Long id);
+
+    @Query("SELECT t FROM Task t LEFT JOIN FETCH t.comments WHERE t.id = :id AND t.author.id = :authorId")
+    Optional<Task> findByIdAndAuthorIdWithComments(@Param("id") Long id, @Param("authorId") Long authorId);
+
+    Optional<Task> findByIdAndAuthorId(Long id, Long authorId);
+
+    boolean existsByIdAndAuthorId(Long id, Long authorId);
 }

@@ -26,6 +26,10 @@ public class Task {
     @Column(nullable = false)
     private TaskStatus status;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
+
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
@@ -49,36 +53,34 @@ public class Task {
 
     }
 
-    public Task(String title, String description, TaskStatus status) {
+    public Task(String title, String description, TaskStatus status, User author) {
         this.title = title;
         this.description = description;
         this.status = status;
+        this.author = author;
     }
 
     public Long getId() {
         return id;
     }
-
     public String getTitle() {
         return title;
     }
-
     public String getDescription() {
         return description;
     }
-
     public TaskStatus getStatus() {
         return status;
     }
-
+    public User getAuthor() {
+        return author;
+    }
     public List<Comment> getComments() {
         return comments;
     }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
-
     public Instant getUpdatedAt() {
         return updatedAt;
     }
@@ -86,15 +88,12 @@ public class Task {
     public void setTitle(String title) {
         this.title = title;
     }
-
     public void setDescription(String description) {
         this.description = description;
     }
-
     public void setStatus(TaskStatus status) {
         this.status = status;
     }
-
     public void setComments(List<Comment> comments) {
         this.comments = comments;
     }

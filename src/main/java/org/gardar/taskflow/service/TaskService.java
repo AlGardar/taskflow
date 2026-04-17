@@ -5,7 +5,9 @@ import org.gardar.taskflow.event.CommentAddedEvent;
 import org.gardar.taskflow.model.Comment;
 import org.gardar.taskflow.model.Task;
 import org.gardar.taskflow.model.TaskStatus;
+import org.gardar.taskflow.model.User;
 import org.gardar.taskflow.repository.TaskRepository;
+import org.gardar.taskflow.repository.UserRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,23 +19,24 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final UserRepository userRepository;
 
-    public TaskService(TaskRepository taskRepository, ApplicationEventPublisher eventPublisher) {
+    public TaskService(TaskRepository taskRepository, ApplicationEventPublisher eventPublisher, UserRepository userRepository) {
         this.taskRepository = taskRepository;
         this.eventPublisher = eventPublisher;
+        this.userRepository = userRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<TaskResponse> getAllTasks() {
-        return taskRepository.findAll()
-                .stream()
+    public List<TaskResponse> getAllTasks(Long authorId) {
+        return taskRepository.findAllByAuthorId(authorId).stream()
                 .map(TaskResponse::fromEntity)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public TaskDetailResponse getTaskWithComment(Long id) {
-        Task detailTask = taskRepository.findByIdWithComments(id)
+    public TaskDetailResponse getTaskWithComments(Long id, Long authorId) {
+        Task detailTask = taskRepository.findByIdAndAuthorIdWithComments(id, authorId)
                 .orElseThrow(() -> new IllegalArgumentException("Task with id: " + id + " not found."));
         return TaskDetailResponse.fromEntity(detailTask);
     }
@@ -46,20 +49,23 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskResponse createTask(TaskCreateRequest request) {
+    public TaskResponse createTask(TaskCreateRequest request, Long authorId) {
+        User authorReference = userRepository.getReferenceById(authorId);
+
         Task task = new Task(
                 request.title(),
                 request.description(),
-                TaskStatus.TODO
-        );
+                TaskStatus.TODO,
+                authorReference
+                );
 
         Task savedTask = taskRepository.save(task);
         return TaskResponse.fromEntity(savedTask);
     }
 
     @Transactional
-    public TaskResponse updatedTask(Long id, TaskUpdateRequest request) {
-        Task task = taskRepository.findById(id)
+    public TaskResponse updatedTask(Long id, Long authorId, TaskUpdateRequest request) {
+        Task task = taskRepository.findByIdAndAuthorId(id, authorId)
                 .orElseThrow(() -> new IllegalArgumentException("Task with id: " + id + " not found."));
         task.setTitle(request.title());
         task.setDescription(request.description());
@@ -69,8 +75,8 @@ public class TaskService {
     }
 
     @Transactional
-    public void deleteTask(Long id) {
-        if (!taskRepository.existsById(id)) {
+    public void deleteTask(Long id, Long authorId) {
+        if (!taskRepository.existsByIdAndAuthorId(id, authorId)) {
             throw new IllegalArgumentException("Task not found with id: " + id);
         }
         taskRepository.deleteById(id);

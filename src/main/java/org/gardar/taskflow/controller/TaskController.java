@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import org.gardar.taskflow.dto.*;
 import org.gardar.taskflow.service.TaskService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,31 +21,33 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<TaskResponse> getAllTasks() {
-        return taskService.getAllTasks();
+    public List<TaskResponse> getAllTasks(@AuthenticationPrincipal Jwt jwt) {
+        Long userId = jwt.getClaim("userId");
+        return taskService.getAllTasks(userId);
     }
 
     @GetMapping("/{id}")
-    public TaskDetailResponse getTaskById(@PathVariable Long id) {
-        return taskService.getTaskWithComment(id);
+    public TaskDetailResponse getTaskById(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        return taskService.getTaskWithComments(id, jwt.getClaim("userId"));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskResponse createTask(@Valid @RequestBody TaskCreateRequest request) {
-        return taskService.createTask(request);
+    public TaskResponse createTask(@Valid @RequestBody TaskCreateRequest request, @AuthenticationPrincipal Jwt jwt) {
+        return taskService.createTask(request, jwt.getClaim("userId"));
     }
 
     @PutMapping("/{id}")
     public TaskResponse updateTask(@PathVariable Long id,
-                                   @Valid @RequestBody TaskUpdateRequest request) {
-        return taskService.updatedTask(id, request);
+                                   @Valid @RequestBody TaskUpdateRequest request,
+                                   @AuthenticationPrincipal Jwt jwt) {
+        return taskService.updatedTask(id, jwt.getClaim("userId"), request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTask(@PathVariable Long id) {
-        taskService.deleteTask(id);
+    public void deleteTask(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        taskService.deleteTask(id, jwt.getClaim("userId"));
     }
 
     @PostMapping("/{id}/comment")
