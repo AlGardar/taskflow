@@ -41,7 +41,7 @@ public class TaskController {
     public TaskResponse updateTask(@PathVariable Long id,
                                    @Valid @RequestBody TaskUpdateRequest request,
                                    @AuthenticationPrincipal Jwt jwt) {
-        return taskService.updatedTask(id, jwt.getClaim("userId"), request);
+        return taskService.updateTask(id, jwt.getClaim("userId"), request);
     }
 
     @DeleteMapping("/{id}")
@@ -53,7 +53,8 @@ public class TaskController {
     @PostMapping("/{id}/comment")
     @ResponseStatus(HttpStatus.CREATED)
     public CommentResponse addComment(@PathVariable Long id,
-                                      @Valid @RequestBody CommentCreatedRequest request) {
-        return taskService.addCommentToTask(id, request);
+                                      @Valid @RequestBody CommentCreatedRequest request,
+                                      @AuthenticationPrincipal Jwt jwt) {
+        return taskService.addCommentToTask(id, jwt.getClaim("userId"), request);
     }
 }

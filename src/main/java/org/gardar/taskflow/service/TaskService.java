@@ -52,7 +52,6 @@ public class TaskService {
         );
     }
 
-    @CacheEvict(value = "tasks", allEntries = true)
     @Transactional(readOnly = true)
     public TaskDetailResponse getTaskWithComments(Long id, Long authorId) {
         Task detailTask = taskRepository.findByIdAndAuthorIdWithComments(id, authorId)
@@ -60,11 +59,24 @@ public class TaskService {
         return TaskDetailResponse.fromEntity(detailTask);
     }
 
-    @Transactional(readOnly = true)
-    public TaskResponse getTaskById(Long id) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Task with id: " + id + " not found."));
-        return TaskResponse.fromEntity(task);
+    @CacheEvict(value = "tasks", allEntries = true)
+    @Transactional
+    public CommentResponse addCommentToTask(Long taskId, Long authorId, CommentCreatedRequest request) {
+        Task task = taskRepository.findByIdAndAuthorId(taskId, authorId)
+                .orElseThrow(() -> new IllegalArgumentException("Task with id: " + taskId + " not found."));
+
+        Comment comment = new Comment(request.text(), task);
+        task.addComment(comment);
+
+        taskRepository.flush();
+
+        eventPublisher.publishEvent(new CommentAddedEvent(
+                task.getId(),
+                comment.getId(),
+                comment.getText(),
+                comment.getCreatedAt()
+        ));
+        return CommentResponse.fromEntity(comment);
     }
 
     @CacheEvict(value = "tasks", allEntries = true)
@@ -85,7 +97,7 @@ public class TaskService {
 
     @CacheEvict(value = "tasks", allEntries = true)
     @Transactional
-    public TaskResponse updatedTask(Long id, Long authorId, TaskUpdateRequest request) {
+    public TaskResponse updateTask(Long id, Long authorId, TaskUpdateRequest request) {
         Task task = taskRepository.findByIdAndAuthorId(id, authorId)
                 .orElseThrow(() -> new IllegalArgumentException("Task with id: " + id + " not found."));
         task.setTitle(request.title());
@@ -102,25 +114,5 @@ public class TaskService {
             throw new IllegalArgumentException("Task not found with id: " + id);
         }
         taskRepository.deleteById(id);
-    }
-
-    @CacheEvict(value = "tasks", allEntries = true)
-    @Transactional
-    public CommentResponse addCommentToTask(Long taskId, CommentCreatedRequest request) {
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Task with id: " + taskId + " not found."));
-
-        Comment comment = new Comment(request.text(), task);
-        task.addComment(comment);
-
-        taskRepository.flush();
-
-        eventPublisher.publishEvent(new CommentAddedEvent(
-                task.getId(),
-                comment.getId(),
-                comment.getText(),
-                comment.getCreatedAt()
-        ));
-        return CommentResponse.fromEntity(comment);
     }
 }
