@@ -39,6 +39,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     // Поддержка JWT токенов "из коробки"
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 }
 
 tasks.withType<Test> {

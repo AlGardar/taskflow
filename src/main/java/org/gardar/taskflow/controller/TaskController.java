@@ -21,9 +21,9 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<TaskResponse> getAllTasks(@AuthenticationPrincipal Jwt jwt) {
+    public PageResponse<TaskResponse> getAllTasks(@AuthenticationPrincipal Jwt jwt, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Long userId = jwt.getClaim("userId");
-        return taskService.getAllTasks(userId);
+        return taskService.getAllTasks(userId, page, size);
     }
 
     @GetMapping("/{id}")

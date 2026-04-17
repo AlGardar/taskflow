@@ -2,6 +2,8 @@ package org.gardar.taskflow.repository;
 
 import org.gardar.taskflow.model.Task;
 import org.gardar.taskflow.model.TaskStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +17,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     List<Task> findAllByStatus(TaskStatus status);
 
-    List<Task> findAllByAuthorId(Long authorId);
+    Page<Task> findAllByAuthorId(Long authorId, Pageable pageable);
 
     @Query("select t from Task t left join fetch t.comments where t.id = :id")
     Optional<Task> findByIdWithComments(@Param("id") Long id);
